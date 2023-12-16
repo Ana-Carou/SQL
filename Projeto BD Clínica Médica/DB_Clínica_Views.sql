@@ -1,6 +1,8 @@
 -- - Criação de views
 
 -- - Quantidade de pacientes por turno - -- 
+/*Essa view tem como objetivo contar quantos pacientes a clínica terá em cada turno*/
+/*É composta pelas tabelas medico, paciente e turno*/
 create or replace view vw_pacientes_por_turno
 as
 select m.id_turno, 
@@ -12,6 +14,8 @@ join turno t on t.id_turno=m.id_turno
 group by 1;
 
 -- - Detalhes da ficha médica do paciente - --
+/*Essa view tem como objetivo puxar todas as informações dos pacientes para que se tenha uma visão única*/
+/*É composta pelas tabelas ficha_do_paciente, paciente, medicamentos, diagnosticos e exames*/
 create or replace view vw_ficha_medica
 as
 select f.id_ficha as 'número da ficha', 
@@ -29,6 +33,8 @@ group by 1
 order by 1 asc;
 
 -- - Os pacientes de cada médico e suas especialidades - --
+/*Essa view tem como objetivo verificar quantos pacientes tem cada médico por especialidade*/
+/*É composta pelas medico, paciente e especialidade*/
 create or replace view vw_medico_paciente
 as
 select concat(m.primeiro_nome, ' ', m.ultimo_nome) as 'nome do médico',
@@ -38,3 +44,38 @@ from medico m
 join paciente p on p.id_medico=m.id_medico
 join especialidade e on e.id_especialidade=m.id_especialidade
 order by 1 asc;
+
+-- - Pacientes que estão fazendo uso de antibiótico
+/*Essa view tem como objetivo mostrar todos os pacientes que fazem uso de antibiótico*/
+/*É composta pelas tabelas ficha_do_paciente, medicamentos e paciente*/
+create or replace view vw_pacientes_antibiotico
+as
+select concat(p.primeiro_nome, ' ', p.ultimo_nome) as 'nome do paciente'
+from paciente p
+join ficha_do_paciente f on p.id_paciente = f.id_paciente
+join medicamentos m on f.id_medicamentos = m.id_medicamentos
+where m.descricao_medicamentos = 'antibiótico';
+
+-- - Lista de diagnosticos mais recorrentes
+/*Essa view tem como objetivo verificar quais são os diagnosticos mais recorrentes entre os pacientes da clínica*/
+/*É composta pelas tabelas diganostico e ficha_do_paciente*/
+create or replace view vw_diag_recorrentes
+as
+select d.descricao_diagnostico,
+count(descricao_diagnostico) as 'Recorrências'
+from diagnostico d
+join ficha_do_paciente f on d.id_diagnostico=f.id_diagnostico
+group by 1
+order by 2 desc;
+
+-- - Lista de exames mais solicitados
+/*Essa view tem como objetivo verificar quais são os exames mais recorrentes da clínica*/
+/*É composta pelas tabelas exames e ficha_do_paciente*/
+create or replace view vw_exames_solicitados
+as
+select e.descricao_exames,
+count(descricao_exames) as 'Pedidos de exame'
+from exames e
+join ficha_do_paciente f on e.id_exames=f.id_exames
+group by 1
+order by 2 desc;
